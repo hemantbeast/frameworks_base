@@ -6721,6 +6721,12 @@ public final class Settings {
          */
         public static final String VOLUME_ANSWER_CALL = "volume_answer_call";
 
+        /**
+         * Toast icon
+         * @hide
+         */
+        public static final String TOAST_ICON = "toast_icon";
+
         /***************************
          * AICP System Settings end
          ***************************/
@@ -7068,6 +7074,7 @@ public final class Settings {
             PRIVATE_SETTINGS.add(GAMING_MODE_DYNAMIC_ADD);
             PRIVATE_SETTINGS.add(GAMING_MODE_DISABLE_NOTIFICATION_ALERT);
             PRIVATE_SETTINGS.add(VOLUME_ANSWER_CALL);
+            PRIVATE_SETTINGS.add(TOAST_ICON);
         }
 
         /**
