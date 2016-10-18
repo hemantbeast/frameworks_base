@@ -255,5 +255,6 @@ public class SecureSettings {
         Settings.Secure.PULSE_AMBIENT_LIGHT_REPEAT_DIRECTION,
         Settings.Secure.PULSE_AMBIENT_LIGHT_WIDTH,
         Settings.Secure.KEYGUARD_TRANSITION_ANIMATIONS,
+        Settings.Secure.ALLOW_SIGNATURE_FAKE,
     };
 }
