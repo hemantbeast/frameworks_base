@@ -134,6 +134,11 @@ import android.hardware.hdmi.HdmiPlaybackClient;
 import android.hardware.hdmi.HdmiPlaybackClient.OneTouchPlayCallback;
 import android.hardware.input.InputManager;
 import android.hardware.input.InputManagerInternal;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.AudioManagerInternal;
 import android.media.AudioSystem;
@@ -215,6 +220,8 @@ import com.android.internal.policy.PhoneWindow;
 import com.android.internal.policy.TransitionAnimation;
 import com.android.internal.statusbar.IStatusBarService;
 import com.android.internal.util.ArrayUtils;
+import com.android.internal.util.aicp.AicpUtils;
+import com.android.internal.util.aicp.CustomKeyHandler;
 import com.android.server.ExtconStateObserver;
 import com.android.server.ExtconUEventObserver;
 import com.android.server.GestureLauncherService;
@@ -265,6 +272,7 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     static final boolean DEBUG_INPUT = false;
     static final boolean DEBUG_KEYGUARD = false;
     static final boolean DEBUG_WAKEUP = false;
+    static final boolean DEBUG_PROXI_SENSOR = false;
 
     // Whether to allow dock apps with METADATA_DOCK_HOME to temporarily take over the Home key.
     // No longer recommended for desk docks;
@@ -749,6 +757,14 @@ public class PhoneWindowManager implements WindowManagerPolicy {
     // Custom additions
     private static final int MSG_CAMERA_LONG_PRESS = 101;
 
+    // omni additions start
+    private CustomKeyHandler mCustomKeyHandler;
+    private boolean mProxyIsNear;
+    private SensorManager mSensorManager;
+    private Sensor mProximitySensor;
+    private boolean mProxiWakeupCheckEnabled;
+    private boolean mProxiListenerEnabled;
+
     private class PolicyHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {
@@ -956,6 +972,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     UserHandle.USER_ALL);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.VOLUME_ANSWER_CALL), false, this,
+                    UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.OMNI_SYSTEM_PROXI_CHECK_ENABLED), false, this,
                     UserHandle.USER_ALL);
 
             updateSettings();
@@ -2481,6 +2500,49 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         filter = new IntentFilter();
         filter.addAction(ACTION_TORCH_OFF);
         mContext.registerReceiver(torchReceiver, filter);
+
+        String customKeyHandlerLib = mContext.getResources().getString(
+                com.android.internal.R.string.config_customKeyHandlerLib);
+
+        String customKeyHandlerClass = mContext.getResources().getString(
+                com.android.internal.R.string.config_customKeyHandlerClass);
+
+        if (!customKeyHandlerLib.isEmpty() && !customKeyHandlerClass.isEmpty()) {
+            try {
+                PathClassLoader loader =  new PathClassLoader(customKeyHandlerLib,
+                        getClass().getClassLoader());
+
+                Class<?> klass = loader.loadClass(customKeyHandlerClass);
+                Constructor<?> constructor = klass.getConstructor(Context.class);
+                mCustomKeyHandler = (CustomKeyHandler) constructor.newInstance(
+                        mContext);
+                if(DEBUG_INPUT) Slog.d(TAG, "Aicp key handler loaded");
+            } catch (Exception e) {
+                Slog.w(TAG, "Could not instantiate aicp key handler "
+                        + customKeyHandlerClass + " from class "
+                        + customKeyHandlerLib, e);
+            }
+        }
+        boolean supportPowerButtonProxyCheck = mContext.getResources().getBoolean(R.bool.config_proxiSensorWakupCheck);
+        if (supportPowerButtonProxyCheck) {
+            mSensorManager = (SensorManager) mContext.getSystemService(Context.SENSOR_SERVICE);
+            if (mCustomKeyHandler != null && mCustomKeyHandler.getCustomProxiSensor() != null) {
+                String proxySensor = mCustomKeyHandler.getCustomProxiSensor();
+                for (Sensor sensor : mSensorManager.getSensorList(Sensor.TYPE_ALL)) {
+                    if (proxySensor.equals(sensor.getStringType())) {
+                        mProximitySensor = sensor;
+                        if (DEBUG_PROXI_SENSOR) Log.i(TAG, "mProximitySensor = " + proxySensor);
+                    }
+                }
+            }
+            if (mProximitySensor == null) {
+                mProximitySensor = mSensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
+                if (mProximitySensor != null) {
+                    if (DEBUG_PROXI_SENSOR) Log.i(TAG, "mProximitySensor = Sensor.TYPE_PROXIMITY");
+                }
+            }
+        }
+
         initKeyCombinationRules();
         initSingleKeyGestureRules();
         mSideFpsEventHandler = new SideFpsEventHandler(mContext, mHandler, mPowerManager);
@@ -2975,6 +3037,9 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                     Settings.Global.KEY_CHORD_POWER_VOLUME_UP,
                     mContext.getResources().getInteger(
                             com.android.internal.R.integer.config_keyChordPowerVolumeUp));
+            mProxiWakeupCheckEnabled = Settings.System.getIntForUser(resolver,
+                    Settings.System.OMNI_SYSTEM_PROXI_CHECK_ENABLED, 0,
+                    UserHandle.USER_CURRENT) != 0;
         }
         if (updateRotation) {
             updateRotation(true);
@@ -3613,8 +3678,15 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         }
 
         // Specific device key handling
-        if (dispatchKeyToKeyHandlers(event)) {
-            return -1;
+        if (mCustomKeyHandler != null) {
+            try {
+                // The device only should consume keys it can handle.
+                if (mCustomKeyHandler.canHandleKeyEvent(event)) {
+                      return key_consumed;
+                }
+            } catch (Exception e) {
+                Slog.w(TAG, "Could not dispatch event to aicp key handler", e);
+            }
         }
 
         // Reserve all the META modifier combos for system behavior
@@ -4356,6 +4428,55 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             return 0;
         }
 
+        // Specific custom key handling
+        if (mCustomKeyHandler != null) {
+            try {
+               // The device says if we should ignore this event.
+                if (mCustomKeyHandler.isDisabledKeyEvent(event)) {
+                    return 0;
+                }
+                if (mCustomKeyHandler.isCameraLaunchEvent(event)) {
+                    if (DEBUG_INPUT) {
+                        Slog.i(TAG, "isCameraLaunchEvent from mCustomKeyHandler");
+                    }
+                    GestureLauncherService gestureService = LocalServices.getService(
+                            GestureLauncherService.class);
+                    if (gestureService != null) {
+                        gestureService.doCameraLaunchGesture();
+                    }
+                    return 0;
+                }
+                if (!interactive && mCustomKeyHandler.isWakeEvent(event)) {
+                    if (DEBUG_INPUT) {
+                        Slog.i(TAG, "isWakeEvent from mCustomKeyHandler");
+                    }
+                    wakeUp(event.getEventTime(), mAllowTheaterModeWakeFromKey,
+                            PowerManager.WAKE_REASON_WAKE_KEY, "android.policy:KEY");
+                    return 0;
+                }
+                final Intent eventLaunchActivity = mCustomKeyHandler.isActivityLaunchEvent(event);
+                if (!interactive && eventLaunchActivity != null) {
+                    if (DEBUG_INPUT) {
+                        Slog.i(TAG, "isActivityLaunchEvent from mCustomKeyHandler " + eventLaunchActivity);
+                    }
+                    wakeUp(event.getEventTime(), mAllowTheaterModeWakeFromKey,
+                            PowerManager.WAKE_REASON_WAKE_KEY, "android.policy:KEY");
+                    AicpUtils.launchKeyguardDismissIntent(mContext, UserHandle.CURRENT, eventLaunchActivity);
+                    return 0;
+                }
+                if (mCustomKeyHandler.handleKeyEvent(event)) {
+                    return 0;
+                 }
+            } catch (Exception e) {
+                Slog.w(TAG, "Could not dispatch event to aicp key handler", e);
+            }
+        }
+
+        // Specific device key handling
+        if (dispatchKeyToKeyHandlers(event)) {
+            return 0;
+        }
+
         // Basic policy based on interactive state.
         int result;
         if (interactive || (isInjected && !isWakeKey)) {
@@ -4643,6 +4764,10 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 // Any activity on the power button stops the accessibility shortcut
                 result &= ~ACTION_PASS_TO_USER;
                 isWakeKey = false; // wake-up will be handled separately
+                if (mProxiListenerEnabled && mProxyIsNear) {
+                    if (DEBUG_PROXI_SENSOR) Log.i(TAG, "KeyEvent.KEYCODE_POWER blocked because of mProxyIsNear");
+                    break;
+                }
                 if (down) {
                     interceptPowerKeyDown(event, interactiveAndOn);
                 } else {
@@ -5011,6 +5136,10 @@ public class PhoneWindowManager implements WindowManagerPolicy {
      * is always considered a wake key.
      */
     private boolean isWakeKeyWhenScreenOff(int keyCode) {
+        if (mProxiListenerEnabled && mProxyIsNear) {
+            if (DEBUG_PROXI_SENSOR) Log.i(TAG, "isWakeKeyWhenScreenOff blocked because of mProxyIsNear - keyCode = " + keyCode);
+            return false;
+        }
         switch (keyCode) {
             case KeyEvent.KEYCODE_VOLUME_UP:
             case KeyEvent.KEYCODE_VOLUME_DOWN:
@@ -5409,6 +5538,12 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         if (mDisplayFoldController != null) {
             mDisplayFoldController.finishedWakingUp();
         }
+        if (mProxiWakeupCheckEnabled && mProximitySensor != null) {
+            if (DEBUG_PROXI_SENSOR) Log.i(TAG, "unregisterListener");
+            mSensorManager.unregisterListener(mProximitySensorListener, mProximitySensor);
+            mProxyIsNear = false;
+            mProxiListenerEnabled = false;
+        }
     }
 
     private boolean shouldWakeUpWithHomeIntent() {
@@ -5512,6 +5647,13 @@ public class PhoneWindowManager implements WindowManagerPolicy {
                 wakeUp(SystemClock.uptimeMillis(), mAllowTheaterModeWakeFromPowerKey,
                         PowerManager.WAKE_REASON_CAMERA_LAUNCH,
                         "com.android.systemui:CAMERA_GESTURE_PREVENT_LOCK");
+            }
+            if (mProxiWakeupCheckEnabled && mProximitySensor != null && !mProxiListenerEnabled) {
+                mProxyIsNear = false;
+                if (DEBUG_PROXI_SENSOR) Log.i(TAG, "registerListener");
+                mSensorManager.registerListener(mProximitySensorListener, mProximitySensor,
+                        SensorManager.SENSOR_DELAY_NORMAL);
+                mProxiListenerEnabled = true;
             }
         }
     }
@@ -6982,4 +7124,20 @@ public class PhoneWindowManager implements WindowManagerPolicy {
             cancelTorchOff();
         }
     }
+
+    private SensorEventListener mProximitySensorListener = new SensorEventListener() {
+        @Override
+        public void onSensorChanged(SensorEvent event) {
+            if (mCustomKeyHandler != null && mCustomKeyHandler.getCustomProxiSensor() != null) {
+                mProxyIsNear = mCustomKeyHandler.getCustomProxiIsNear(event);
+            } else {
+                mProxyIsNear = event.values[0] < mProximitySensor.getMaximumRange();
+            }
+            if (DEBUG_PROXI_SENSOR) Log.i(TAG, "mProxyIsNear = " + mProxyIsNear);
+        }
+
+        @Override
+        public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        }
+    };
 }

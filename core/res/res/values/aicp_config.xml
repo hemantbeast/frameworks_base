@@ -16,6 +16,14 @@
     <!-- Whether device has physical tri state switch -->
     <bool name="config_hasAlertSlider">false</bool>
 
+    <!-- Path to the a single custom key handler library -->
+    <string name="config_customKeyHandlerLib" translatable="false">
+    </string>
+
+    <!-- Name of the key handler class in the custom key handler library -->
+    <string name="config_customKeyHandlerClass" translatable="false">
+    </string>
+
     <!-- The location of the devices physical tri state switch
          0: Left side
          1: Right side -->
@@ -309,4 +317,9 @@
         <item>org.codeaurora.gallery</item>
         <item>com.android.calculator2</item>
     </string-array>
+
+    <!-- make sure you enable this only if your device supports deep slepp
+    with active proximity sensor event listener -->
+    <bool name="config_proxiSensorWakupCheck">false</bool>
+
 </resources>

@@ -8,6 +8,8 @@
     <!-- Device keyhandlers -->
     <java-symbol type="array" name="config_deviceKeyHandlerLibs" />
     <java-symbol type="array" name="config_deviceKeyHandlerClasses" />
+    <java-symbol type="string" name="config_customKeyHandlerLib" />
+    <java-symbol type="string" name="config_customKeyHandlerClass" />
 
     <!-- Whether device has physical tri state switch -->
     <java-symbol type="bool" name="config_hasAlertSlider" />
@@ -212,4 +214,8 @@
     <!-- App lock -->
     <java-symbol type="string" name="unlock_application" />
     <java-symbol type="array" name="config_appLockAllowedSystemApps" />
+
+    <!-- make sure you enable this only if your device supports deep slepp
+    with active proximity sensor event listener -->
+    <java-symbol type="bool" name="config_proxiSensorWakupCheck" />
 </resources>

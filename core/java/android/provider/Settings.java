@@ -6660,6 +6660,32 @@ public final class Settings {
         @Readable
         public static final String GAMESPACE_SUPPRESS_FULLSCREEN_INTENT = "gamespace_suppress_fullscreen_intent";
 
+        /**
+         * Enable proxi check for wake keys - must be implemented in a device
+         * KeyHandler
+         * @hide
+         */
+        public static final String OMNI_DEVICE_PROXI_CHECK_ENABLED = "device_proxi_check_enabled";
+
+        /*
+         * @hide
+         */
+        @SuppressLint("NoSettingsProvider")
+        public static final String OMNI_DEVICE_FEATURE_SETTINGS = "device_feature_settings";
+
+        /**
+         * some devices have a extra hw button e.g. n3 on the back on the
+         * fingerprint sensor. allow mapping button to key
+         *
+         * @hide
+         */
+        public static final String OMNI_BUTTON_EXTRA_KEY_MAPPING = "button_extra_mapping";
+
+        /**
+         * @hide
+         */
+        public static final String OMNI_SYSTEM_PROXI_CHECK_ENABLED = "system_proxi_check_enabled";
+
         /***************************
          * AICP System Settings end
          ***************************/
@@ -6927,6 +6953,10 @@ public final class Settings {
             PRIVATE_SETTINGS.add(FORCE_FULLSCREEN_CUTOUT_APPS);
             PRIVATE_SETTINGS.add(CHARGING_ANIMATION);
             PRIVATE_SETTINGS.add(SECONDARY_COLOR_CLOCK);
+            PRIVATE_SETTINGS.add(OMNI_DEVICE_PROXI_CHECK_ENABLED);
+            PRIVATE_SETTINGS.add(OMNI_DEVICE_FEATURE_SETTINGS);
+            PRIVATE_SETTINGS.add(OMNI_BUTTON_EXTRA_KEY_MAPPING);
+            PRIVATE_SETTINGS.add(OMNI_SYSTEM_PROXI_CHECK_ENABLED);
         }
 
         /**

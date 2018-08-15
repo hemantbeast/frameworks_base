@@ -233,5 +233,9 @@ public class SystemSettings {
         Settings.System.FORCE_FULLSCREEN_CUTOUT_APPS,
         Settings.System.CHARGING_ANIMATION,
         Settings.System.SECONDARY_COLOR_CLOCK,
+        Settings.System.OMNI_DEVICE_PROXI_CHECK_ENABLED,
+        Settings.System.OMNI_DEVICE_FEATURE_SETTINGS,
+        Settings.System.OMNI_BUTTON_EXTRA_KEY_MAPPING,
+        Settings.System.OMNI_SYSTEM_PROXI_CHECK_ENABLED,
     };
 }
