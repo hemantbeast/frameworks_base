@@ -6569,6 +6569,11 @@ public final class Settings {
          */
         public static final String FLASHLIGHT_ON_CALL = "flashlight_on_call";
 
+        /**
+         * @hide
+         */
+        public static final String FLASHLIGHT_ON_CALL_WAITING = "flashlight_on_call_waiting";
+
         /***************************
          * AICP System Settings end
          ***************************/
@@ -6896,6 +6901,7 @@ public final class Settings {
             PRIVATE_SETTINGS.add(QS_SYSTEM_INFO);
             PRIVATE_SETTINGS.add(QS_DATAUSAGE);
             PRIVATE_SETTINGS.add(FLASHLIGHT_ON_CALL);
+            PRIVATE_SETTINGS.add(FLASHLIGHT_ON_CALL_WAITING);
         }
 
         /**
