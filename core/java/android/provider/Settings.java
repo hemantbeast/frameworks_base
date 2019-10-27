@@ -6547,6 +6547,12 @@ public final class Settings {
          */
         public static final String LOCKSCREEN_MAX_NOTIF_CONFIG = "lockscreen_max_notif_config";
 
+        /**
+         * Shows system info in QS OFF:0, CPU temp:1, battery temp:2, gpu freq: 3, gpu load: 4
+         * @hide
+         */
+        public static final String QS_SYSTEM_INFO = "qs_system_info";
+
         /***************************
          * AICP System Settings end
          ***************************/
@@ -6871,6 +6877,7 @@ public final class Settings {
             PRIVATE_SETTINGS.add(LOCKSCREEN_MAX_NOTIF_CONFIG);
             PRIVATE_SETTINGS.add(LOCK_SCREEN_CUSTOM_NOTIF);
             PRIVATE_SETTINGS.add(RINGTONE_VIBRATION_PATTERN);
+            PRIVATE_SETTINGS.add(QS_SYSTEM_INFO);
         }
 
         /**
