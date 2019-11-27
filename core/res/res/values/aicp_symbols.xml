@@ -168,4 +168,12 @@
   <!-- Statusbar Left-Right padding -->
   <java-symbol type="integer" name="config_statusbarPaddingStartDefault" />
   <java-symbol type="integer" name="config_statusbarPaddingEndDefault" />
+
+  <!-- System info -->
+  <java-symbol type="string" name="config_sysCPUTemp" />
+  <java-symbol type="string" name="config_sysBatteryTemp" />
+  <java-symbol type="string" name="config_sysGPUFreq" />
+  <java-symbol type="string" name="config_sysGPULoad" />
+  <java-symbol type="integer" name="config_sysCPUTempMultiplier" />
+  <java-symbol type="integer" name="config_sysBatteryTempMultiplier" />
 </resources>
