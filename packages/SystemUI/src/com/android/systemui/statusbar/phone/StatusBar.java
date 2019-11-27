@@ -202,6 +202,7 @@ import com.android.systemui.plugins.statusbar.StatusBarStateController;
 import com.android.systemui.qs.QSFragment;
 import com.android.systemui.qs.QSPanelController;
 import com.android.systemui.qs.QuickQSPanelController;
+import com.android.systemui.qs.QuickStatusBarHeader;
 import com.android.systemui.recents.ScreenPinningRequest;
 import com.android.systemui.scrim.ScrimView;
 import com.android.systemui.settings.brightness.BrightnessSlider;
@@ -479,6 +480,7 @@ public class StatusBar extends SystemUI implements DemoMode,
     // settings
     private QSPanelController mQSPanelController;
     private QuickQSPanelController mQuickQSPanelController;
+    private QuickStatusBarHeader mQuickStatusBarHeader;
 
     KeyguardIndicationController mKeyguardIndicationController;
 
@@ -1401,6 +1403,7 @@ public class StatusBar extends SystemUI implements DemoMode,
                 if (qs instanceof QSFragment) {
                     mQSPanelController = ((QSFragment) qs).getQSPanelController();
                     mQuickQSPanelController = ((QSFragment) qs).getQuickQSPanelController();
+                    mQuickStatusBarHeader = ((QSFragment) qs).getQuickStatusBarHeader();
                     mQSPanelController.setBrightnessMirror(mBrightnessMirrorController);
                 }
             });
@@ -4825,6 +4828,9 @@ public class StatusBar extends SystemUI implements DemoMode,
             resolver.registerContentObserver(Settings.System.getUriFor(
                           Settings.System.LOCKSCREEN_MAX_NOTIF_CONFIG),
                           false, this, UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.System
+                    .getUriFor(Settings.System.QS_SYSTEM_INFO), false,
+                    this, UserHandle.USER_ALL);
         }
 
         @Override
@@ -5280,6 +5286,9 @@ public class StatusBar extends SystemUI implements DemoMode,
         }
         if (mNotificationInterruptStateProvider != null) {
             mNotificationInterruptStateProvider.setUseLessBoringHeadsUp(lessBoringHeadsUp);
+        }
+        if (mQuickStatusBarHeader != null) {
+            mQuickStatusBarHeader.updateSettings();
         }
         setScreenBrightnessMode();
         updateNavigationBar(false);
