@@ -294,5 +294,6 @@ public class SystemSettings {
         Settings.System.RINGTONE_VIBRATION_PATTERN,
         Settings.System.QS_SYSTEM_INFO,
         Settings.System.QS_DATAUSAGE,
+        Settings.System.FLASHLIGHT_ON_CALL,
     };
 }
