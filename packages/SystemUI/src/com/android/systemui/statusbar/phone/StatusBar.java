@@ -4831,6 +4831,9 @@ public class StatusBar extends SystemUI implements DemoMode,
             resolver.registerContentObserver(Settings.System
                     .getUriFor(Settings.System.QS_SYSTEM_INFO), false,
                     this, UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.QS_DATAUSAGE),
+                    false, this, UserHandle.USER_ALL);
         }
 
         @Override
@@ -5434,6 +5437,12 @@ public class StatusBar extends SystemUI implements DemoMode,
             for (String item : array) {
                 arrayList.add(item.trim());
             }
+        }
+    }
+
+    public void updateDataUsageImage() {
+        if (mQuickStatusBarHeader != null) {
+            mQuickStatusBarHeader.updateDataUsageImage();
         }
     }
 }
