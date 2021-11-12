@@ -6611,6 +6611,12 @@ public final class Settings {
          */
         public static final String ADAPTIVE_PLAYBACK_TIMEOUT = "adaptive_playback_timeout";
 
+        /**
+         * Whether to combine wifi and signal icons
+         * @hide
+         */
+        public static final String COMBINED_STATUS_BAR_SIGNAL_ICONS = "combined_status_bar_signal_icons";
+
         /***************************
          * AICP System Settings end
          ***************************/
@@ -6944,6 +6950,7 @@ public final class Settings {
             PRIVATE_SETTINGS.add(FLASHLIGHT_ON_CALL_RATE);
             PRIVATE_SETTINGS.add(ADAPTIVE_PLAYBACK_ENABLED);
             PRIVATE_SETTINGS.add(ADAPTIVE_PLAYBACK_TIMEOUT);
+            PRIVATE_SETTINGS.add(COMBINED_STATUS_BAR_SIGNAL_ICONS);
         }
 
         /**
