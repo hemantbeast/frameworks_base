@@ -238,6 +238,7 @@ interface IStatusBarService
 
     /** AICP additions. */
     void toggleCameraFlash();
+    void setBlockedGesturalNavigation(boolean blocked);
 
     /**
      * Slim recents
