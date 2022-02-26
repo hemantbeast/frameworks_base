@@ -12125,6 +12125,12 @@ public final class Settings {
          */
         public static final String STATUS_BAR_BATTERY_STYLE = "status_bar_battery_style";
 
+        /**
+         * Width of Ambient edge light in px
+         * @hide
+         */
+        public static final String KEYGUARD_TRANSITION_ANIMATIONS = "sysui_keyguard_transition_animations";
+
         /*****************************
          * AICP Secure Settings end
          *****************************/
