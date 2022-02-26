@@ -247,5 +247,12 @@ public class SecureSettings {
         Settings.Secure.STATUSBAR_CLOCK_DATE_STYLE,
         Settings.Secure.STATUSBAR_CLOCK_DATE_FORMAT,
         Settings.Secure.STATUSBAR_CLOCK_DATE_POSITION,
+        Settings.Secure.PULSE_AMBIENT_LIGHT,
+        Settings.Secure.PULSE_AMBIENT_LIGHT_COLOR,
+        Settings.Secure.PULSE_AMBIENT_LIGHT_DURATION,
+        Settings.Secure.PULSE_AMBIENT_LIGHT_COLOR_MODE,
+        Settings.Secure.PULSE_AMBIENT_LIGHT_REPEAT_COUNT,
+        Settings.Secure.PULSE_AMBIENT_LIGHT_REPEAT_DIRECTION,
+        Settings.Secure.PULSE_AMBIENT_LIGHT_WIDTH,
     };
 }
