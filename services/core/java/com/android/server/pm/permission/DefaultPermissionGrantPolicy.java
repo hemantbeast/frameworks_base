@@ -223,11 +223,6 @@ final class DefaultPermissionGrantPolicy {
         WALLPAPER_PERMISSIONS.add(Manifest.permission.SET_WALLPAPER_COMPONENT);
     }
 
-    private static final Set<String> SUSPEND_APP_PERMISSIONS = new ArraySet<>();
-    static {
-        SUSPEND_APP_PERMISSIONS.add(Manifest.permission.SUSPEND_APPS);
-    }
-
     private static final Set<String> PULSE_EQ_PERMISSIONS = new ArraySet<>();
     static {
         PULSE_EQ_PERMISSIONS.add(Manifest.permission.MODIFY_AUDIO_SETTINGS);
@@ -968,15 +963,10 @@ final class DefaultPermissionGrantPolicy {
         // ThemePicker
         grantSystemFixedPermissionsToSystemPackage(pm, "com.android.wallpaper", userId, STORAGE_PERMISSIONS);
 
-        // Wellbeing
-        grantSystemFixedPermissionsToSystemPackage(pm,
-                getDefaultProviderAuthorityPackage("com.google.android.apps.wellbeing", userId),
-                userId, SUSPEND_APP_PERMISSIONS);
-
         // Google Markup
         grantSystemFixedPermissionsToSystemPackage(pm, "com.google.android.markup", userId, STORAGE_PERMISSIONS);
 
-       // SystemUI Pulse EQ
+        // SystemUI Pulse EQ
         grantSystemFixedPermissionsToSystemPackage(pm, "com.android.systemui", userId, PULSE_EQ_PERMISSIONS);
 
         // Chromium Sign-in
